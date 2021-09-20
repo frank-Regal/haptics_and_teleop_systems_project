@@ -98,7 +98,7 @@ void loop()
 }
 
 // --------------------------
-// Haptic Loop
+// Haptic Loop (Only thing we need to edit)
 // --------------------------
   void hapticLoop()
   {
