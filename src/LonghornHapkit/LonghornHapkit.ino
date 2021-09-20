@@ -4,7 +4,7 @@
 // Last Modified: 08.27.21
 // Code to test basic functionaility of the Longhorn Hapkit (w/ encoder)
 //--------------------------------------------------------------------------
-
+// whats up
 // INCLUDES
 #define ENCODER_OPTIMIZE_INTERRUPTS
 #include <TimerOne.h>  // This library manages the timing of the haptic loop 
