@@ -32,11 +32,16 @@ double theta_s = 0;      // Angle of the sector pulley in deg
 double xh_prev;          // Distance of the handle at previous time step
 double xh_prev2;
 double dxh;              // Velocity of the handle
+double vh;
+double lastLastVh;
+double lastVh;
+double lastXh;
 double dxh_prev;
 double dxh_prev2;
 double dxh_filt;         // Filtered velocity of the handle
 double dxh_filt_prev;
 double dxh_filt_prev2;
+
 
 // *******************************************
 // UNCOMMENT THESE AND INCLUDE CORRECT NUMBERS
@@ -44,6 +49,8 @@ double dxh_filt_prev2;
 double rh = 0.09;   //[m] 
 double rp = 0.005;  //[m] 
 double rs = 0.074;  //[m] 
+double C = (rh*rp)/rs; // Constant for kinematic constant
+
 // *******************************************
 
 // Force output variables
@@ -102,7 +109,7 @@ void loop()
 // --------------------------
   void hapticLoop()
   {
-
+    
       // See if flag is out (couldn't finish before another call) 
       if(hapticLoopFlagOut)
       {
@@ -127,7 +134,7 @@ void loop()
           // Step 2.1: print updatedPos via serial monitor
           //*************************************************************
 
-           Serial.println(pos);
+           //Serial.println(pos);
            
           // Step 2.2: Compute the angle of the sector pulley (ts) in degrees based on updatedPos
          //*************************************************************
@@ -138,26 +145,35 @@ void loop()
           //*************************************************************
 
            xh = rh*(ts*3.14159/180);       // Again, these numbers may not be correct. You need to determine these relationships. 
+           
+
         
           // Step 2.4: print xh via serial monitor
           //*************************************************************
 
-           //Serial.println(xh,5);
+           ///Serial.println(xh,5);
+           
+           /// Min (Left): .00632 (m)
+           ///Center: .00778 (m)
+           /// Max (Right): .00801 (m)
            
           // Step 2.5: compute handle velocity
           //*************************************************************
-           //  vh = -(.95*.95)*lastLastVh + 2*.95*lastVh + (1-.95)*(1-.95)*(xh-lastXh)/.0001;  // filtered velocity (2nd-order filter)
-           //  lastXh = xh;
-           //  lastLastVh = lastVh;
-           // lastVh = vh;
+//            vh = -(.95*.95)*lastLastVh + 2*.95*lastVh + (1-.95)*(1-.95)*(xh-lastXh)/.0001;  // filtered velocity (2nd-order filter)
+//            lastXh = xh;
+//            lastLastVh = lastVh;
+//            lastVh = vh;
+//
+//           Serial.println(vh,5);
 
         //*************************************************************
         //*** Section 3. Assign a motor output force in Newtons *******  
         //*************************************************************
  
             // Init force 
-            int force = 0;
-            double K = 150;   // spring stiffness 
+            int force = .5;
+            
+            double K = 15;   // spring stiffness 
     
            if(pos < 0)
           {
@@ -166,6 +182,8 @@ void loop()
           {
             force = 0; 
           }
+          Tp = force*C;
+          Serial.println(force);
 
          // This is just a simple example of a haptic wall that only uses encoder position.
          // You will need to add the rest of the following cases. You will want to enable some way to select each case. 
