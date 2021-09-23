@@ -14,7 +14,7 @@
 // Pin Declarations
 const int PWMoutp = 4;
 const int PWMoutn = 5;
-const int PWMspeed = 9;
+const int PWMspeed = 6;
 
 const int encoder0PinA = 2;
 const int encoder0PinB = 3;
@@ -49,13 +49,17 @@ double dxh_filt_prev2;
 double rh = 0.09;   //[m] 
 double rp = 0.005;  //[m] 
 double rs = 0.074;  //[m] 
-double C = (rh*rp)/rs; // Constant for kinematic constant
+double C = (rh*rp)/rs; // Constant for kinematic constant (0.006)
 
 // *******************************************
 
 // Force output variables
 double force = 0;           // force at the handle
+double force_min =0;        // min force of system
+double force_max = 0;       // max force of system
 double Tp = 0;              // torque of the motor pulley
+double Tp_max = 0;          // maximum torque based on maximum force found before motor slips
+double Tp_min = 0;          // minimum torque based on the minimum force for motor to move
 double duty = 0;            // duty cylce (between 0 and 255)
 unsigned int output = 0;    // output command to the motor
 
@@ -135,6 +139,8 @@ void loop()
           //*************************************************************
 
            //Serial.println(pos);
+           //pos_max (right) = -78
+           //pos_min (left) = 70
            
           // Step 2.2: Compute the angle of the sector pulley (ts) in degrees based on updatedPos
          //*************************************************************
@@ -150,20 +156,22 @@ void loop()
         
           // Step 2.4: print xh via serial monitor
           //*************************************************************
+           //Serial.println(pos);
+           Serial.println(xh,5);
+           
+           /// Min (Left): 0.00660 (m)
+           ///Center: 0.00778 (m)
+           /// Max (Right): 0.00911 (m)
+           double xh_min = 0.00682; 
+           double xh_max = 0.009; 
 
-           ///Serial.println(xh,5);
-           
-           /// Min (Left): .00632 (m)
-           ///Center: .00778 (m)
-           /// Max (Right): .00801 (m)
-           
           // Step 2.5: compute handle velocity
           //*************************************************************
-//            vh = -(.95*.95)*lastLastVh + 2*.95*lastVh + (1-.95)*(1-.95)*(xh-lastXh)/.0001;  // filtered velocity (2nd-order filter)
-//            lastXh = xh;
-//            lastLastVh = lastVh;
-//            lastVh = vh;
-//
+            vh = -(.95*.95)*lastLastVh + 2*.95*lastVh + (1-.95)*(1-.95)*(xh-lastXh)/.0001;  // filtered velocity (2nd-order filter)
+            lastXh = xh;
+            lastLastVh = lastVh;
+            lastVh = vh;
+
 //           Serial.println(vh,5);
 
         //*************************************************************
@@ -171,29 +179,34 @@ void loop()
         //*************************************************************
  
             // Init force 
-            int force = .5;
-            
+            double force = 0; // N
             double K = 15;   // spring stiffness 
-    
-           if(pos < 0)
-          {
-            force = -K*pos; 
-          } else 
-          {
-            force = 0; 
-          }
-          Tp = force*C;
-          Serial.println(force);
+            //force = K * 0.008;
+        // Virtual Spring 
+        //*************************************************************
 
-         // This is just a simple example of a haptic wall that only uses encoder position.
-         // You will need to add the rest of the following cases. You will want to enable some way to select each case. 
-         // Options for this are #DEFINE statements, swtich case statements (i.e., like a key press in serial monitor), or 
-         // some other method. 
-          
+//           Serial.println(pos);
+//           if(pos < 0)
+//          {
+//            force = -K*xh; 
+//          } else 
+//          {
+//            force = K*xh; 
+//          }
+//        
+
           // Virtual Wall 
         //*************************************************************
-           
-       
+//           if (xh<0)
+//           {
+//            force = -K*xh;
+//           }
+//           else 
+//           {
+//            force = 0;
+//           }
+
+
          // Linear Damping 
         //*************************************************************
         
@@ -216,37 +229,44 @@ void loop()
            // CHALLENGE POINTS: Try simulating a paddle ball! Hint you need to keep track of the virtual balls dynamics and 
            // compute interaction forces relative to the changing ball position.  
         //*************************************************************
-        
- 
+      
+      Tp = C * force;    // output torque based on force calculations above
+      
+    
+      force_min = K * xh_min; 
+      force_max = K * xh_max; 
 
+      Tp_max =  C * force_max; // Calculated max torque from force calibration
+      Tp_min =  C * force_min;   // Calculated min torque from force calibration
+      output = 0; //map(Tp, Tp_min, Tp_max, 70, 143);
+       
       //*************************************************************
       //*** Section 5. Force output (do not change) *****************
       //*************************************************************
 
         // Determine correct direction 
         //*************************************************************
-        if(force < 0)
+        if(output < 0)
         {
         digitalWrite(PWMoutp, HIGH);
         digitalWrite(PWMoutn, LOW);
         } else 
         {
-         digitalWrite(PWMoutp, LOW);
+        digitalWrite(PWMoutp, LOW);
         digitalWrite(PWMoutn, HIGH);
         } 
     
         // Limit torque to motor and write
         //*************************************************************
-        if(abs(force) > 255)
+        if(abs(output) > 255)
         {
-          force = 255; 
+          output = 255; 
         }
             //Serial.println(force); // Could print this to troublshoot but don't leave it due to bogging down speed
 
         // Write out the motor speed.
         //*************************************************************    
-        analogWrite(PWMspeed, abs(force)); //abs(force)
-      //  analogWrite(PWMspeed, 255); //abs(force)
+        analogWrite(PWMspeed, abs(output)); //abs(force)
   
   // Update variables 
   lastVel = vel;
