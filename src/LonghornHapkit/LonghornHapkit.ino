@@ -62,10 +62,14 @@ double Tp_max = 0;          // maximum torque based on maximum force found befor
 double Tp_min = 0;          // minimum torque based on the minimum force for motor to move
 double duty = 0;            // duty cylce (between 0 and 255)
 unsigned int output = 0;    // output command to the motor
+double max_vel = 0;
+double max_vel_new = 0;
 
 // Timing Variables: Initalize Timer and Set Haptic Loop
 boolean hapticLoopFlagOut = false; 
 boolean timeoutOccured = false; 
+double t = 0; // time
+double T = 0.001; // time step
 
 //--------------------------------------------------------------------------
 // Initialize
@@ -156,7 +160,6 @@ void loop()
         
           // Step 2.4: print xh via serial monitor
           //*************************************************************
-           //Serial.println(pos);
            //Serial.println(xh,5);
            
            // Min (Left):  0.00660 (m)
@@ -191,32 +194,77 @@ void loop()
            
         // Virtual Spring 
         //*************************************************************
-            double K_spring = 145;      // N/m - spring stiffness 
-            force = -K_spring*xh; 
+//            double K_spring = 0.65;      // N/m - spring stiffness 
+//            force = -K_spring*xh; 
 
-          // Virtual Wall 
+        // Virtual Wall 
         //*************************************************************
-//           if (xh<0)
-//           {
-//            force = -K*xh;
-//           }
-//           else 
+//           double K_wall = 150;
+//           double x_wall = 0.0081;
+//           //Serial.println(xh,5);
+//           
+//           if (xh < x_wall)
 //           {
 //            force = 0;
 //           }
+//           else if (xh > x_wall)
+//           {
+//            force = -K_wall * (xh - x_wall);
+//           }
 
-
-         // Linear Damping 
+        // Linear Damping 
         //*************************************************************
-        
-
-         // Nonlinear Friction
+//            double b = 0.01;
+//            //Serial.println(vh,5);
+//            force = -b * vh;
+//            
+        // Nonlinear Friction
         //*************************************************************
-        
+//        double del_vel = 0;
+//        double Dp = 0;
+//        double Dn = 0;
+//        double Cn = 0;
+//        double Cp = 0;
+//        double b_nonlinear = 0;
+//        
+//        
+//        if (vh < -del_vel)
+//        {
+//          force = Cn*sgn(vh) + bn*vh;
+//        } else if (vh > -del_vel && vh < 0)
+//        {
+//          force = max(Dn,Fa);
+//        } else if (vh > 0 && vh < del_vel)
+//        {
+//          force = min(Dp,Fa);
+//        } else if (vh > del_vel)
+//        {
+//          force = Cp*sgn(vh)+bp*xh;
+//        }
 
          // A Hard Surface 
         //*************************************************************
-        
+         double K_surface = 150;
+         double x_wall = 0.0081;
+         //Serial.println(xh,5);
+
+         double A = 1;       // amplitude
+         double lambda = 1;  // decay constant
+         double phi = 1;     // intial phase angle, rad
+         double freq = 5;    // sampling freq, Hz
+         double omega = freq*2*3.1459;  // angular, rad/s
+
+
+         if (xh > x_wall)
+         {
+            force = A * exp(-lambda*t) * (cos(omega*t*phi) + sin(omega*t*phi));
+            t = t + T;
+         } else if (xh < x_wall)
+         {
+            t=0;
+         }
+
+
 
          // Bump and Valley  
         //*************************************************************
@@ -243,7 +291,7 @@ void loop()
       // max_duty = 0.5608 because max PWM (143)/255 = 0.5608
       // min_duty = 0.2745 because min PWM (70)/255 = 0.2745
       
-      duty = sqrt(abs(Tp)/0.03);
+      duty = sqrt(abs(Tp)/0.0003);
       if (duty > 1)
       {
         duty =1;
@@ -252,7 +300,7 @@ void loop()
         duty = 0;
       }
       output = (int)(duty*255);
-      Serial.println(output);
+      //Serial.println(output);
        
       //*************************************************************
       //*** Section 5. Force output (do not change) *****************
