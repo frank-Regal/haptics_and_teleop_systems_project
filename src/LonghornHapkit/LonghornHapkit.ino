@@ -46,9 +46,9 @@ double dxh_filt_prev2;
 // *******************************************
 // UNCOMMENT THESE AND INCLUDE CORRECT NUMBERS
 // *******************************************
-double rh = 0.09;   //[m] 
-double rp = 0.005;  //[m] 
-double rs = 0.074;  //[m] 
+double rh = 0.090;     //[m] 
+double rp = 0.005;     //[m] 
+double rs = 0.074;     //[m] 
 double C = (rh*rp)/rs; // Constant for kinematic constant (0.006)
 
 // *******************************************
@@ -145,7 +145,7 @@ void loop()
           // Step 2.2: Compute the angle of the sector pulley (ts) in degrees based on updatedPos
          //*************************************************************
 
-           double ts = -.0107*pos + 4.9513; // NOTE - THESE NUMBERS MIGHT NOT BE CORRECT! USE KINEMATICS TO FIGRUE IT OUT!
+           double ts = -0.0107*pos + 4.9513; // NOTE - THESE NUMBERS MIGHT NOT BE CORRECT! USE KINEMATICS TO FIGRUE IT OUT!
        
          // Step 2.3: Compute the position of the handle based on ts
           //*************************************************************
@@ -157,13 +157,14 @@ void loop()
           // Step 2.4: print xh via serial monitor
           //*************************************************************
            //Serial.println(pos);
-           Serial.println(xh,5);
+           //Serial.println(xh,5);
            
-           /// Min (Left): 0.00660 (m)
-           ///Center: 0.00778 (m)
-           /// Max (Right): 0.00911 (m)
-           double xh_min = 0.00682; 
-           double xh_max = 0.009; 
+           // Min (Left):  0.00660 (m)
+           // Center:      0.00778 (m)
+           // Max (Right): 0.00911 (m)
+           
+           double xh_min = 0.00682; //[m]
+           double xh_max = 0.00900; //[m]
 
           // Step 2.5: compute handle velocity
           //*************************************************************
@@ -178,22 +179,20 @@ void loop()
         //*** Section 3. Assign a motor output force in Newtons *******  
         //*************************************************************
  
+            
+            // min PWM value for motor to move = 70;
+            // max PWM value for motor to slip = 143;
+            // max_force = 1.5515
+            // min_force = 0.3718
+
             // Init force 
             double force = 0; // N
-            double K = 15;   // spring stiffness 
-            //force = K * 0.008;
+            
+           
         // Virtual Spring 
         //*************************************************************
-
-//           Serial.println(pos);
-//           if(pos < 0)
-//          {
-//            force = -K*xh; 
-//          } else 
-//          {
-//            force = K*xh; 
-//          }
-//        
+            double K_spring = 145;      // N/m - spring stiffness 
+            force = -K_spring*xh; 
 
           // Virtual Wall 
         //*************************************************************
@@ -233,12 +232,27 @@ void loop()
       Tp = C * force;    // output torque based on force calculations above
       
     
-      force_min = K * xh_min; 
-      force_max = K * xh_max; 
+      //force_min = K * xh_min; 
+      //force_max = K * xh_max; 
 
-      Tp_max =  C * force_max; // Calculated max torque from force calibration
-      Tp_min =  C * force_min;   // Calculated min torque from force calibration
-      output = 0; //map(Tp, Tp_min, Tp_max, 70, 143);
+      //Tp_max =  C * force_max; // Calculated max torque from force calibration
+      
+      //Tp_min =  C * force_min;   // Calculated min torque from force calibration
+      //output = 140;//map(Tp, Tp_min, Tp_max, 70, 143);
+
+      // max_duty = 0.5608 because max PWM (143)/255 = 0.5608
+      // min_duty = 0.2745 because min PWM (70)/255 = 0.2745
+      
+      duty = sqrt(abs(Tp)/0.03);
+      if (duty > 1)
+      {
+        duty =1;
+      }else if (duty <0)
+      {
+        duty = 0;
+      }
+      output = (int)(duty*255);
+      Serial.println(output);
        
       //*************************************************************
       //*** Section 5. Force output (do not change) *****************
