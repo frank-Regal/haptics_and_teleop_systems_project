@@ -70,6 +70,8 @@ boolean hapticLoopFlagOut = false;
 boolean timeoutOccured = false; 
 double t = 0; // time
 double T = 0.001; // time step
+double i =0;
+
 
 //--------------------------------------------------------------------------
 // Initialize
@@ -171,12 +173,13 @@ void loop()
 
           // Step 2.5: compute handle velocity
           //*************************************************************
+            
             vh = -(.95*.95)*lastLastVh + 2*.95*lastVh + (1-.95)*(1-.95)*(xh-lastXh)/.0001;  // filtered velocity (2nd-order filter)
             lastXh = xh;
             lastLastVh = lastVh;
             lastVh = vh;
 
-//           Serial.println(vh,5);
+           //Serial.println(lastVh,6);
 
         //*************************************************************
         //*** Section 3. Assign a motor output force in Newtons *******  
@@ -241,6 +244,37 @@ void loop()
 //        {
 //          force = Cp*sgn(vh)+bp*xh;
 //        }
+//
+            double b_small = 0.1;
+            double b_big = 4;
+            double max_vh = 0.04;
+            double min_vh = 0.01;
+            if (vh < 0)
+            {
+              if (abs(vh) < min_vh)
+              {
+                force = -b_small * abs(vh);
+              } else if (abs(vh) > min_vh && abs(vh) < max_vh)
+              {
+                force = -b_big * abs(vh);
+              } else if (abs(vh) > max_vh)
+              {
+                force = -b_small * abs(vh);
+              }
+            } else if (vh > 0)
+              {
+                if (abs(vh) < min_vh)
+              {
+                force = b_small * vh;
+              } else if (abs(vh) > min_vh && abs(vh) < max_vh)
+              {
+                force = b_big * vh;
+              } else if (abs(vh) > max_vh)
+              {
+                force = b_small * vh;
+              }
+            }
+            //Serial.println(force,5);
 
          // A Hard Surface 
         //*************************************************************
@@ -287,14 +321,15 @@ void loop()
 
         // Texture 
         //*************************************************************
-            double ts_scaled = 0; // new scaled value for ts
-            if (ts > 4.9513)
-            {
-            ts = ts - 4.9513;
-            ts_scaled = ts * 230.8144; // degrees
-            ts_scaled = (ts_scaled*3.1459/180); // radians
-            force = (0.5*sin(7*ts_scaled) + 0.5*sin(20*ts_scaled))/35;
-            }
+//            double ts_scaled = 0;    // new scaled value for ts
+//            double K_texture = 0.05;
+//            if (ts > 4.9513)
+//            {
+//            ts = ts - 4.9513;
+//            ts_scaled = ts * 230.8144; // degrees
+//            ts_scaled = (ts_scaled*3.1459/180); // radians
+//            force = K_texture*(0.5*sin(7*ts_scaled) + 0.5*sin(20*ts_scaled));
+//            }
            // CHALLENGE POINTS: Try simulating a paddle ball! Hint you need to keep track of the virtual balls dynamics and 
            // compute interaction forces relative to the changing ball position.  
         //*************************************************************
@@ -342,9 +377,9 @@ void loop()
     
         // Limit torque to motor and write
         //*************************************************************
-        if(abs(output) > 255)
+        if(abs(output) > 140)
         {
-          output = 255; 
+          output = 140; 
         }
             //Serial.println(force); // Could print this to troublshoot but don't leave it due to bogging down speed
 
