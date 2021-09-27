@@ -150,13 +150,13 @@ void loop()
          //*************************************************************
 
            double ts = -0.0107*pos + 4.9513; // NOTE - THESE NUMBERS MIGHT NOT BE CORRECT! USE KINEMATICS TO FIGRUE IT OUT!
-       
+            //double ts = -0.0107*pos;
          // Step 2.3: Compute the position of the handle based on ts
           //*************************************************************
 
            xh = rh*(ts*3.14159/180);       // Again, these numbers may not be correct. You need to determine these relationships. 
-           
-
+           //Serial.println(ts,5);
+           //Serial.println(pos);
         
           // Step 2.4: print xh via serial monitor
           //*************************************************************
@@ -244,35 +244,57 @@ void loop()
 
          // A Hard Surface 
         //*************************************************************
-         double K_surface = 150;
-         double x_wall = 0.0081;
-         //Serial.println(xh,5);
+//         double K_surface = 1;
+//         double x_wall = 0.0081;
+//         //Serial.println(xh,5);
+//
+//         // #NOTE: START THE HANDLE TO THE LEFT OF THE WALL
+//
+//         double A = 1;       // amplitude
+//         double lambda = 1;  // decay constant
+//         double phi = 1;     // intial phase angle, rad
+//         double freq = 5;    // sampling freq, Hz
+//         double omega = freq*2*3.1459;  // angular, rad/s
+//
+//         if (xh > x_wall)
+//         {
+//            force = K_surface * (A * exp(-lambda*t) * (cos(omega*t*phi) + sin(omega*t*phi)));
+//            t = t + T;
+//         } else if (xh < x_wall)
+//         {
+//            t=0;
+//         }
 
-         double A = 1;       // amplitude
-         double lambda = 1;  // decay constant
-         double phi = 1;     // intial phase angle, rad
-         double freq = 5;    // sampling freq, Hz
-         double omega = freq*2*3.1459;  // angular, rad/s
-
-
-         if (xh > x_wall)
-         {
-            force = A * exp(-lambda*t) * (cos(omega*t*phi) + sin(omega*t*phi));
-            t = t + T;
-         } else if (xh < x_wall)
-         {
-            t=0;
-         }
-
-
-
-         // Bump and Valley  
+        // Bump and Valley  
         //*************************************************************
+//           double K_bump_valley = 1;
+//           double xbuffer = 0.03; // 0.0195 * 2 to degrees 
+//           double ts_scaled = 0; // new scaled value for ts
+//           if (ts > 4.9513 + xbuffer)
+//           {
+//            ts = ts - 4.9513;
+//            ts_scaled = ts * 230.8144; // degrees
+//            ts_scaled = (ts_scaled*3.1459/180); // radians
+//            force = K_bump_valley*rh*sin(ts_scaled);
+//           }else if (ts < 4.9513 - xbuffer)
+//           {
+//            ts = ts - 4.9513;
+//            ts_scaled = ts * 230.8144; // degrees
+//            ts_scaled = (ts_scaled*3.1459/180); // radians
+//            force = K_bump_valley*rh*cos(ts_scaled);
+//           }
+          
 
-
-          // Texture 
+        // Texture 
         //*************************************************************
-
+            double ts_scaled = 0; // new scaled value for ts
+            if (ts > 4.9513)
+            {
+            ts = ts - 4.9513;
+            ts_scaled = ts * 230.8144; // degrees
+            ts_scaled = (ts_scaled*3.1459/180); // radians
+            force = (0.5*sin(7*ts_scaled) + 0.5*sin(20*ts_scaled))/35;
+            }
            // CHALLENGE POINTS: Try simulating a paddle ball! Hint you need to keep track of the virtual balls dynamics and 
            // compute interaction forces relative to the changing ball position.  
         //*************************************************************
@@ -300,7 +322,7 @@ void loop()
         duty = 0;
       }
       output = (int)(duty*255);
-      //Serial.println(output);
+      Serial.println(output);
        
       //*************************************************************
       //*** Section 5. Force output (do not change) *****************
