@@ -158,7 +158,7 @@ void loop()
 
            xh = rh*(ts*3.14159/180);       // Again, these numbers may not be correct. You need to determine these relationships. 
            //Serial.println(ts,5);
-           //Serial.println(pos);
+           Serial.println(pos);
         
           // Step 2.4: print xh via serial monitor
           //*************************************************************
@@ -197,8 +197,8 @@ void loop()
            
         // Virtual Spring 
         //*************************************************************
-//            double K_spring = 0.65;      // N/m - spring stiffness 
-//            force = -K_spring*xh; 
+            double K_spring = 0.9;      // N/m - spring stiffness 
+            force = K_spring*xh; 
 
         // Virtual Wall 
         //*************************************************************
@@ -244,36 +244,36 @@ void loop()
 //        {
 //          force = Cp*sgn(vh)+bp*xh;
 //        }
-//
-            double b_small = 0.1;
-            double b_big = 4;
-            double max_vh = 0.04;
-            double min_vh = 0.01;
-            if (vh < 0)
-            {
-              if (abs(vh) < min_vh)
-              {
-                force = -b_small * abs(vh);
-              } else if (abs(vh) > min_vh && abs(vh) < max_vh)
-              {
-                force = -b_big * abs(vh);
-              } else if (abs(vh) > max_vh)
-              {
-                force = -b_small * abs(vh);
-              }
-            } else if (vh > 0)
-              {
-                if (abs(vh) < min_vh)
-              {
-                force = b_small * vh;
-              } else if (abs(vh) > min_vh && abs(vh) < max_vh)
-              {
-                force = b_big * vh;
-              } else if (abs(vh) > max_vh)
-              {
-                force = b_small * vh;
-              }
-            }
+////
+//            double b_small = 0.1;
+//            double b_big = 4;
+//            double max_vh = 0.04;
+//            double min_vh = 0.01;
+//            if (vh < 0)
+//            {
+//              if (vh > 0)
+//              {
+//                force = -b_small * abs(vh);
+//              } else if (abs(vh) > min_vh && abs(vh) < max_vh)
+//              {
+//                force = -b_big * abs(vh);
+//              } else if (abs(vh) > max_vh)
+//              {
+//                force = -b_small * abs(vh);
+//              }
+//            } else if (abs(vh) < min_vh)
+//              {
+//                if (abs(vh) < min_vh)
+//              {
+//                force = b_small * vh;
+//              } else if (abs(vh) > min_vh && abs(vh) < max_vh)
+//              {
+//                force = b_big * vh;
+//              } else if (abs(vh) > max_vh)
+//              {
+//                force = b_small * vh;
+//              }
+//            }
             //Serial.println(force,5);
 
          // A Hard Surface 
@@ -357,7 +357,7 @@ void loop()
         duty = 0;
       }
       output = (int)(duty*255);
-      Serial.println(output);
+      //Serial.println(Tp);
        
       //*************************************************************
       //*** Section 5. Force output (do not change) *****************
@@ -365,21 +365,25 @@ void loop()
 
         // Determine correct direction 
         //*************************************************************
-        if(output < 0)
+        if(force < 0)
         {
+          // motor turns counterclockwise
+          // handle turns clockwise
         digitalWrite(PWMoutp, HIGH);
         digitalWrite(PWMoutn, LOW);
         } else 
         {
+          // motor turned clockwise
+          // handle turns counterclockwise
         digitalWrite(PWMoutp, LOW);
         digitalWrite(PWMoutn, HIGH);
         } 
     
         // Limit torque to motor and write
         //*************************************************************
-        if(abs(output) > 140)
+        if(abs(output) > 255)
         {
-          output = 140; 
+          output = 255; 
         }
             //Serial.println(force); // Could print this to troublshoot but don't leave it due to bogging down speed
 
