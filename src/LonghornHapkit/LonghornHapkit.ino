@@ -204,8 +204,8 @@ void hapticLoop()
 
   // Virtual Spring
   //*************************************************************
-  //            double K_spring = 3.5;      // N/m - spring stiffness
-  //            force = K_spring*xh;
+//              double K_spring = 3.5;      // N/m - spring stiffness
+//              force = K_spring*xh;
 
   // Virtual Wall
   //*************************************************************
@@ -224,36 +224,33 @@ void hapticLoop()
 
   // Linear Damping
   //*************************************************************
-  //            double b = 0.7;
-  //            Serial.println(vh,5);
-  //            force = b * vh;
+//              double b = 0.7;
+//              Serial.println(vh,5);
+//              force = b * vh;
 
   // Nonlinear Friction
   //*************************************************************
 
-  //            double b_small = 0.3;
-  //            double b_big = 3;
-  //
-  //            double max_vh = 0.04;
-  //            double min_vh = 0.01;
-  //
-  //            if (pos < -10 )
-  //
-  //            {
-  //             force = b_small * vh;
-  //            }
-  //            else if (pos > -10 && pos < 10)
-  //            {
-  //             force = b_big * vh;
-  //            }
-  //            else if (pos > 10)
-  //            {
-  //             force = b_small * vh;
-  //            }
-  //
-  //          //Serial.println(vh,5);
-  //
-  //
+//              double b_small = 0.3;
+//              double b_big = 3;
+//  
+//              double max_vh = 0.04;
+//              double min_vh = 0.01;
+//  
+//              if (pos < -10 )
+//  
+//              {
+//               force = b_small * vh;
+//              }
+//              else if (pos > -10 && pos < 10)
+//              {
+//               force = b_big * vh;
+//              }
+//              else if (pos > 10)
+//              {
+//               force = b_small * vh;
+//              }
+
 
   // A Hard Surface
   //*************************************************************
@@ -261,7 +258,7 @@ void hapticLoop()
   //double x_wall = 0.0081;
   //Serial.println(xh,5);
 
-  // #NOTE: START THE HANDLE TO THE LEFT OF THE WALL
+// #NOTE: START THE HANDLE TO THE LEFT OF THE WALL
 //
 //  double A = 1;       // amplitude
 //  double lambda = 0.5;  // decay constant
@@ -279,13 +276,14 @@ void hapticLoop()
 //  {
 //    t = 0;
 //  }
-  //Serial.println(exp(-lambda*t) * (cos(omega*t*phi)));
+//  //Serial.println(exp(-lambda*t) * (cos(omega*t*phi)));
   //Serial.println(force);
 
 
   // Bump and Valley
   //*************************************************************
-//  double K_bump_valley = 2;
+//  double K_bump = 2;
+//  double K_valley = 0.5;
 //  double xbuffer = 0.05; // 0.0195 * 2 to degrees
 //  double ts_scaled = 0; // new scaled value for ts
 //  
@@ -294,37 +292,34 @@ void hapticLoop()
 //    ts = ts - 4.9513;
 //    ts_scaled = ts * 230.8144; // degrees
 //    ts_scaled = (ts_scaled * 3.1459 / 180); // radians
-//    force = K_bump_valley * rh * sin(ts_scaled);
+//    force = K_bump * rh * sin(ts_scaled);
+//    if(force < 0)
+//      force = abs(force);
 //  } else if (ts < 4.9513 - xbuffer)
 //  {
 //    ts = ts - 4.9513;
 //    ts_scaled = ts * 230.8144; // degrees
 //    ts_scaled = (ts_scaled * 3.1459 / 180); // radians
-//    force = K_bump_valley * rh * cos(ts_scaled);
-//    if (force < 0)
-//    {
-//      force = abs(force);
-//    }
+//    force = K_valley * rh * cos(ts_scaled);
+//    force = - abs(force);
 //  } else
 //  {
 //    ts = ts - 4.9513;
 //    force = 0;
 //  }
-  //Serial.println(force);
-  //Serial.println(ts);
 
 
   // Texture
   //*************************************************************
-              double ts_scaled = 0;    // new scaled value for ts
-              double K_texture = 0.05;
-              if (ts > 4.9513)
-              {
-              ts = ts - 4.9513;
-              ts_scaled = ts * 230.8144; // degrees
-              ts_scaled = (ts_scaled*3.1459/180); // radians
-              force = K_texture*(0.5*sin(7*ts_scaled) + 0.5*sin(20*ts_scaled));
-              }
+//              double ts_scaled = 0;    // new scaled value for ts
+//              double K_texture = 0.05;
+//              if (ts > 4.9513)
+//              {
+//              ts = ts - 4.9513;
+//              ts_scaled = ts * 230.8144; // degrees
+//              ts_scaled = (ts_scaled*3.1459/180); // radians
+//              force = K_texture*(0.5*sin(7*ts_scaled) + 0.5*sin(20*ts_scaled));
+//              }
    //CHALLENGE POINTS: Try simulating a paddle ball! Hint you need to keep track of the virtual balls dynamics and
   // compute interaction forces relative to the changing ball position.
   //*************************************************************
